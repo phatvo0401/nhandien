@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTP | Project Gallery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --miku: #39c5bb; 
+            --pink: #ff007f; 
+            --glass: rgba(255, 255, 255, 0.03); 
+            --border: rgba(57, 197, 187, 0.2); 
+        }
+        
+        body { 
+            font-family: 'Lexend', sans-serif; background-color: #050a09; 
+            background-image: radial-gradient(at 0% 0%, rgba(57, 197, 187, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(255, 0, 127, 0.1) 0px, transparent 50%);
+            color: #e6f7f6; overflow-x: hidden; margin: 0;
+            cursor: none !important;
+        }
+
+        /* --- LOADER (TỪ TẠP CHÍ) --- */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050a09; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+        #loader.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+        .loader-bar-container { width: 150px; height: 2px; background: rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; border-radius: 2px; }
+        #loader-progress { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: linear-gradient(90deg, var(--miku), var(--pink)); transition: width 0.2s ease; }
+        .loader-percentage { font-family: monospace; font-size: 5rem; font-weight: 900; color: var(--miku); opacity: 0.3; position: absolute; bottom: 5%; right: 5%; line-height: 1; }
+
+        /* --- CURSOR --- */
+        #cursor-follower { width: 20px; height: 20px; border: 2px solid var(--miku); border-radius: 50%; position: fixed; pointer-events: none; z-index: 99999; transform: translate(-50%, -50%); background: linear-gradient(45deg, rgba(57, 197, 187, 0.2), rgba(139, 92, 246, 0.2)); transition: transform 0.08s ease-out; }
+        @media (max-width: 1024px) { #cursor-follower { display: none !important; } body { cursor: auto !important; } }
+
+        /* --- NAV (TỪ TẠP CHÍ) --- */
+        .nav-link { transition: all 0.3s ease; padding: 6px 20px; border-radius: 9999px; border: 1px solid rgba(57, 197, 187, 0.6); color: #ffffff; background: rgba(57, 197, 187, 0.15); font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
+        .nav-link:hover { color: white !important; border-color: var(--pink) !important; box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+
+        /* --- GALLERY --- */
+        .gallery-container { width: 100%; max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        .gallery-item { width: 100%; margin-bottom: 40px; border-radius: 12px; overflow: hidden; background: var(--glass); border: 1px solid var(--border); transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .gallery-item:hover { transform: scale(1.02); border-color: var(--miku); }
+        .gallery-item img { width: 100%; height: auto; display: block; }
+        
+        .reveal { opacity: 0; transform: translateY(30px); transition: 0.8s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* --- BACK TO TOP (GIỐNG 100% WEBPORTFOLIO CÓ 3D) --- */
+        #backToTop {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    cursor: none !important;
+    opacity: 0;
+    visibility: hidden;
+    
+    /* Trạng thái tĩnh: Viền mờ, nền tối trong suốt */
+    background: rgba(5, 10, 9, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(57, 197, 187, 0.3);
+    color: rgba(57, 197, 187, 0.5); /* Mũi tên mờ */
+    
+    transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+#backToTop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* HIỆU ỨNG DI CHUỘT: CHỈ SÁNG VIỀN (LINE GLOW) */
+#backToTop:hover {
+    transform: translateY(-5px);
+    /* Nền vẫn giữ tối, không sáng rực lên */
+    background: rgba(5, 10, 9, 0.85); 
+    
+    /* Viền và Mũi tên rực sáng màu xanh Miku */
+    border-color: #39c5bb;
+    color: #39c5bb;
+    
+    /* Quầng sáng Neon tỏa ra từ đường viền */
+    box-shadow: 0 0 15px rgba(57, 197, 187, 0.6); 
+}
+
+#backToTop svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 3px; /* Độ dày mũi tên chuẩn */
+}
+
+        /* --- CONTACT & FOOTER --- */
+        .contact-title-gradient { background: linear-gradient(to right, var(--miku), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; text-transform: uppercase; letter-spacing: 0.1em; }
+        .social-link { transition: all 0.4s ease; color: #94a3b8; display: inline-block; position: relative; }
+        .social-link:hover { color: var(--pink); transform: translateY(-3px); }
+    </style>
+</head>
+<body>
+    <div id="cursor-follower"></div>
+
+    <div id="loader">
+        <div class="flex flex-col items-center">
+            <div class="flex items-center mb-4" style="font-size: 18px; letter-spacing: -0.05em;">
+                <span style="font-weight: 900; color: #39c5bb; margin-right: 6px; text-transform: uppercase;">VTP</span>
+                <span style="font-weight: 300; color: white; opacity: 0.9;">Showcase</span>
+            </div>
+            <div class="loader-bar-container"><div id="loader-progress"></div></div>
+        </div>
+        <div id="loader-num" class="loader-percentage">00</div>
+    </div>
+
+    <nav class="fixed w-full z-50 py-3 px-4 md:px-10 flex justify-between items-center bg-[#050a09]/70 backdrop-blur-xl border-b border-white/5">
+        <div class="flex flex-col">
+            <div class="text-md md:text-lg flex items-center tracking-tighter">
+                <span class="font-black text-[#39c5bb] mr-1.5 uppercase">VTP</span>
+                <span class="font-light text-white opacity-90">Editorial</span>
+            </div>
+            <div class="flex flex-col space-y-0.5 mt-1">
+                <div class="items-center space-x-1.5 hidden md:flex">
+                    <div class="relative flex h-1.5 w-1.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#39c5bb] opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#39c5bb]"></span>
+                    </div>
+                    <span class="text-[8px] font-bold uppercase tracking-widest text-gray-400">Available</span>
+                </div>
+                <span id="digital-clock" class="text-[8px] font-mono text-gray-500 tracking-wider">00:00:00 AM</span>
+            </div>
+        </div>
+        <a href="index.html" class="nav-link">Back to home</a>
+    </nav>
+
+    <main class="pt-40">
+        <header class="text-center mb-20 reveal">
+            <h1 class="text-5xl md:text-8xl font-black mb-4 uppercase leading-tight tracking-tighter">
+                PROJECT <span class="contact-title-gradient pr-2">SHOWCASE</span>
+            </h1>
+            <p class="text-white/50 font-medium tracking-[0.4em] uppercase text-[10px]">Visual Recognition • 2025</p>
+        </header>
+
+        <div class="gallery-container">
+    <div class="gallery-item reveal"><img src="1.PNG" alt="Project Image 1"></div>
+    <div class="gallery-item reveal"><img src="2.PNG" alt="Project Image 2"></div>
+    <div class="gallery-item reveal"><img src="3.PNG" alt="Project Image 3"></div>
+    <div class="gallery-item reveal"><img src="4.PNG" alt="Project Image 4"></div>
+    <div class="gallery-item reveal"><img src="5.PNG" alt="Project Image 5"></div>
+    <div class="gallery-item reveal"><img src="6.PNG" alt="Project Image 6"></div>
+    <div class="gallery-item reveal"><img src="7.PNG" alt="Project Image 7"></div>
+    <div class="gallery-item reveal"><img src="8.PNG" alt="Project Image 8"></div>
+    <div class="gallery-item reveal"><img src="9.PNG" alt="Project Image 9"></div>
+    <div class="gallery-item reveal"><img src="10.PNG" alt="Project Image 10"></div>
+
+    <div class="gallery-item reveal"><img src="11.PNG" alt="Project Image 11"></div>
+    <div class="gallery-item reveal"><img src="12.PNG" alt="Project Image 12"></div>
+    <div class="gallery-item reveal"><img src="13.PNG" alt="Project Image 13"></div>
+    <div class="gallery-item reveal"><img src="14.PNG" alt="Project Image 14"></div>
+    <div class="gallery-item reveal"><img src="15.PNG" alt="Project Image 15"></div>
+    <div class="gallery-item reveal"><img src="16.PNG" alt="Project Image 16"></div>
+    <div class="gallery-item reveal"><img src="17.PNG" alt="Project Image 17"></div>
+    <div class="gallery-item reveal"><img src="18.PNG" alt="Project Image 18"></div>
+    <div class="gallery-item reveal"><img src="19.PNG" alt="Project Image 19"></div>
+    <div class="gallery-item reveal"><img src="20.PNG" alt="Project Image 20"></div>
+
+    <div class="gallery-item reveal"><img src="21.PNG" alt="Project Image 21"></div>
+    <div class="gallery-item reveal"><img src="22.PNG" alt="Project Image 22"></div>
+    <div class="gallery-item reveal"><img src="23.PNG" alt="Project Image 23"></div>
+    <div class="gallery-item reveal"><img src="24.PNG" alt="Project Image 24"></div>
+    <div class="gallery-item reveal"><img src="25.PNG" alt="Project Image 25"></div>
+    <div class="gallery-item reveal"><img src="26.PNG" alt="Project Image 26"></div>
+    <div class="gallery-item reveal"><img src="27.PNG" alt="Project Image 27"></div>
+    <div class="gallery-item reveal"><img src="28.PNG" alt="Project Image 28"></div>
+    <div class="gallery-item reveal"><img src="29.PNG" alt="Project Image 29"></div>
+    <div class="gallery-item reveal"><img src="30.PNG" alt="Project Image 30"></div>
+
+    <div class="gallery-item reveal"><img src="31.PNG" alt="Project Image 31"></div>
+    <div class="gallery-item reveal"><img src="32.PNG" alt="Project Image 32"></div>
+    <div class="gallery-item reveal"><img src="33.PNG" alt="Project Image 33"></div>
+    <div class="gallery-item reveal"><img src="34.PNG" alt="Project Image 34"></div>
+    <div class="gallery-item reveal"><img src="35.PNG" alt="Project Image 35"></div>
+    <div class="gallery-item reveal"><img src="36.PNG" alt="Project Image 36"></div>
+    <div class="gallery-item reveal"><img src="37.PNG" alt="Project Image 37"></div>
+    <div class="gallery-item reveal"><img src="38.PNG" alt="Project Image 38"></div>
+    <div class="gallery-item reveal"><img src="39.PNG" alt="Project Image 39"></div>
+    <div class="gallery-item reveal"><img src="40.PNG" alt="Project Image 40"></div>
+
+    <div class="gallery-item reveal"><img src="41.PNG" alt="Project Image 41"></div>
+    <div class="gallery-item reveal"><img src="1.PNG" alt="Project Image 42"></div>
+</div>
+
+        <footer id="contact" class="w-full py-20 text-center border-t border-[#39c5bb]/10 mt-20 reveal">
+            <h3 class="text-2xl font-black mb-12 contact-title-gradient italic">Let's work together</h3>
+            <p class="text-xl font-bold mb-3 text-white">phatvo.0401@gmail.com</p>
+            <p class="text-gray-500 text-[12px] uppercase tracking-[0.2em] mb-16">038 477 2414 | CỦ CHI, TP. HỒ CHÍ MINH</p>
+            
+            <div class="flex justify-center gap-8 md:gap-20 mb-24 text-[10px] font-bold">
+                <a href="https://www.facebook.com/phatvo.0401/" target="_blank" class="social-link tracking-widest uppercase">FACEBOOK</a>
+                <a href="https://www.instagram.com/phatvo.0401/" target="_blank" class="social-link tracking-widest uppercase">INSTAGRAM</a>
+                <a href="https://www.behance.net/phtthnh42" target="_blank" class="social-link tracking-widest uppercase">BEHANCE</a>
+            </div>
+
+            <div class="pt-10 border-t border-white/5">
+                <p class="text-slate-600 text-[9px] uppercase tracking-[0.5em] leading-loose">
+                    © 2025 VTP Design — Portfolio Website<br>
+                    All Rights Reserved — Created by Võ Thành Phát
+                </p>
+            </div>
+        </footer>
+
+<button id="backToTop">↑</button>
+
+    </main>
+
+    <button id="backToTop" title="Back to Top">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7" />
+    </svg>
+</button>
+
+    <script>
+        // Clock
+        function updateClock() { document.getElementById('digital-clock').innerText = new Date().toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }).toUpperCase(); }
+        setInterval(updateClock, 1000); updateClock();
+
+        // Cursor
+        const cursor = document.getElementById('cursor-follower');
+        document.addEventListener('mousemove', (e) => { cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px'; });
+
+        // Loader
+        let lp = 0; const li = setInterval(() => { 
+            lp += 5; document.getElementById('loader-progress').style.width=lp+'%'; 
+            document.getElementById('loader-num').innerText=lp.toString().padStart(2,'0'); 
+            if(lp>=100){clearInterval(li); setTimeout(()=>document.getElementById('loader').classList.add('hidden'),500);} 
+        }, 40);
+
+        // Reveal
+        const obs = new IntersectionObserver((es) => { es.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); }); }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Back to Top Logic (Clone 100% from 3D Portfolio)
+        const btt = document.getElementById('backToTop');
+
+window.addEventListener('scroll', () => {
+    // Hiện nút sau khi cuộn xuống 400px
+    if (window.pageYOffset > 400) {
+        btt.classList.add('show');
+    } else {
+        btt.classList.remove('show');
+    }
+});
+
+btt.onclick = (e) => {
+    e.preventDefault();
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+};
+    </script>
+</body>
+</html>
